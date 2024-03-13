@@ -2,7 +2,7 @@ module GrayCodePosition
 
 import Base: eltype, length, diff, iterate, getindex
 
-export GrayCode, GrayCodePositions
+export GrayCode, GrayCodePositions, gray, graytransient
 
 """
 GrayCode(n::Integer)
@@ -21,6 +21,11 @@ diff(code::GrayCode) = GrayCodePositions(code)
 length(code::GrayCode) = (1 << code.nbits)
 
 iterate(code::GrayCode) = (0,1)
+"""
+    gray(n::Integer)
+
+Compute the `n`th Gray codeword.
+"""
 @inline gray(n::Integer) = n ⊻ (n >> 1)
 function iterate(code::GrayCode, state)  
     state == length(code) && return nothing
@@ -47,14 +52,19 @@ eltype(::GCP) = Int64;
 # Note the varying positions are one less than the total number of codes
 length(gcp::GCP) = length(gcp.code) - 1
 
-iterate(gcp::GCP) =  (one(eltype(gcp)), 1)
-@inline transient(n::Integer) = trailing_zeros(n) + 1
+iterate(gcp::GCP) =  (graytransient(1), 1)
+"""
+    graytransient(n::Integer)
+
+Compute the `n`th Gray code transient index, in `1`-based indexing.
+"""
+@inline graytransient(n::Integer) = trailing_zeros(n) + 1
 function Base.iterate(gcp::GCP, state) 
     state == length(gcp) && return nothing
-    (transient(state+1), state+1)
+    (graytransient(state+1), state+1)
 end
 Base.@propagate_inbounds function Base.getindex(gcp::GCP, n ::Integer) 
    1 <= n <= length(gcp) || Base.throw(BoundsError(gcp, n))
-   transient(n) 
+   graytransient(n) 
 end
 end
