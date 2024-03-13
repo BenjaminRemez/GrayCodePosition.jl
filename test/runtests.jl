@@ -4,6 +4,16 @@ using Test
 @testset "Gray code generation & iteration" begin
     # Write your tests here.
 
+    try
+        c = GrayCode(-1) 
+        @test false
+        c = GrayCode(0)
+        @test false
+    catch
+        @test true # test the exception was thrown
+    end
+
+    @test eltype(GrayCode(5)) == Int64
     for n in 1:8
         code = GrayCode(n);
         words = collect(code)
@@ -22,6 +32,9 @@ end
 
 @testset "Position generation & iteration" begin
     
+    c = GrayCode(5)
+    @test GrayCodePositions(c) == diff(c)
+    @test eltype(diff(c)) == Int64
     for n in 1:8
         
         code = GrayCode(n);

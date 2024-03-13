@@ -2,7 +2,7 @@ module GrayCodePosition
 
 import Base: eltype, length, diff, iterate
 
-export GrayCode
+export GrayCode, GrayCodePositions
 
 struct GrayCode
     nbits::Int64
