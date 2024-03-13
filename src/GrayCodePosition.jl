@@ -1,11 +1,11 @@
 module GrayCodePosition
 
-import Base: eltype, length, diff, iterate
+import Base: eltype, length, diff, iterate, getindex
 
 export GrayCode, GrayCodePositions
 
 """
-    GrayCode(n::Integer)
+GrayCode(n::Integer)
 Represents the [Gray code](https://en.wikipedia.org/wiki/Gray_code) over `n` bits. `n` must be positive. 
 GrayCode implements iteration to generate all codewords.
 """
@@ -19,14 +19,20 @@ end
 eltype(::GrayCode) = Int64
 diff(code::GrayCode) = GrayCodePositions(code)
 length(code::GrayCode) = (1 << code.nbits)
+
 iterate(code::GrayCode) = (0,1)
+@inline gray(n::Integer) = n ⊻ (n >> 1)
 function iterate(code::GrayCode, state)  
- state == length(code) && return nothing
- (state ⊻ (state >> 1),state + 1)
+    state == length(code) && return nothing
+    (gray(state),state + 1)
+end
+Base.@propagate_inbounds function Base.getindex(code::GrayCode, n::Integer)
+    1 <= n <= length(code) || Base.throw(BoundsError(code,n))
+    gray(n-1) # As we use 1-based indexing
 end
 
 """
-    GrayCodePositions(code::GrayCode)
+GrayCodePositions(code::GrayCode)
 
 Represents the sequence of transient indices of a Gray code. 
 The `i`th transient index is the position of the bit of `code[i]` that is flipped to obtain `code[i+1]`.
@@ -37,17 +43,18 @@ struct GrayCodePositions
     code::GrayCode
 end
 const GCP = GrayCodePositions;
-
-
 eltype(::GCP) = Int64; 
 # Note the varying positions are one less than the total number of codes
 length(gcp::GCP) = length(gcp.code) - 1
-iterate(gcp::GCP) =  (one(eltype(gcp)), 1)
 
+iterate(gcp::GCP) =  (one(eltype(gcp)), 1)
+@inline transient(n::Integer) = trailing_zeros(n) + 1
 function Base.iterate(gcp::GCP, state) 
     state == length(gcp) && return nothing
-    n = state + 1;
-    (trailing_zeros(n) + 1, n)
-end 
-
+    (transient(state+1), state+1)
+end
+Base.@propagate_inbounds function Base.getindex(gcp::GCP, n ::Integer) 
+   1 <= n <= length(gcp) || Base.throw(BoundsError(gcp, n))
+   transient(n) 
+end
 end

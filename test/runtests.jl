@@ -13,6 +13,9 @@ using Test
         @test true # test the exception was thrown
     end
 
+    c = GrayCode(8)
+    @test [c[i] for i in 1:length(c)] == collect(c)
+
     @test eltype(GrayCode(5)) == Int64
     for n in 1:8
         code = GrayCode(n);
@@ -28,13 +31,17 @@ using Test
         @test flag
         @test sort(words) == 0:length(code)-1 
     end
+
+    
 end
 
 @testset "Position generation & iteration" begin
     
-    c = GrayCode(5)
+    c = GrayCode(8)
     @test GrayCodePositions(c) == diff(c)
     @test eltype(diff(c)) == Int64
+    gcp = diff(c);
+    @test [gcp[i] for i in 1:length(gcp)] == collect(gcp)
     for n in 1:8
         
         code = GrayCode(n);
