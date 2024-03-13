@@ -35,3 +35,39 @@ collect(gcp)'
 # 1×7 adjoint(::Vector{Int64}) with eltype Int64:
 # 1  2  1  3  1  2  1
 ```
+
+# Example Usage
+The transient index sequence of Gray codes is useful for efficiently iterating over all subsets of some set. For example
+```julia
+using GrayCodePosition
+
+function sumsubsets_manual(v)
+    total = zero(eltype(v))
+    for n = 0:(2^length(v)-1)
+        for i in 1:length(v)
+            total += ifelse(n & (1 << (i-1)) != 0 , v[i], 0)
+        end
+    end
+    total
+end
+
+function sumsubsets_gray(v)
+    setsum = zero(eltype(v));
+    total = setsum;
+    for i in 1:(2^length(v)-1)
+        n = gray(i)
+        pos = graytransient(i)
+        setsum += ifelse(n & (1 << (pos-1)) != 0, v[pos], -v[pos])
+        total += setsum
+    end
+    total
+end
+
+v = rand(1:100, 30);
+sumsubsets_manual(v) == sumsubsets_gray(v)
+# true
+@time sumsubsets_manual(v);
+#  16.330157 seconds (1 allocation: 16 bytes)
+@time sumsubsets_gray(v);
+#  1.354014 seconds (1 allocation: 16 bytes)
+``` 
