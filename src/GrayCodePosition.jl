@@ -86,6 +86,19 @@ Base.@propagate_inbounds function Base.getindex(gcp::GCP, n ::Integer)
    end 
 end
 
+"""
+    signedgraytransient(n::Integer)
+
+Compute the `n`th signed Gray code transient index, in `1`-based indexing.
+"""
+@inline function signedgraytransient(n::T) where T <:Integer
+    g = gray(n);
+    pos = graytransient(n);
+    ifelse(g & (1 << (pos - one(T))) == 0, -pos, pos) 
+end 
+
+end
+
 @inline function signedgraytransient(n::T) where T <:Integer
     g = gray(n);
     pos = graytransient(n);
