@@ -38,6 +38,7 @@ end
 @testset "Position generation & iteration" begin
     
     c = GrayCode(8)
+    @test GrayCodePositions{false}(c) == diff(c)
     @test GrayCodePositions(c) == diff(c)
     @test eltype(diff(c)) == Int64
     gcp = diff(c);
@@ -57,4 +58,31 @@ end
         @test vs == collect(code)
     end
 
+end
+
+@testset "Signed positions & iteration" begin
+    c = GrayCode(8);
+    gcp = GrayCodePositions(c);
+    sgcp = GrayCodePositions{true}(c);
+    @test signed(gcp) == sgcp;
+    @test signed(sgcp) === sgcp;
+    try
+        sgcperror = GrayCodePositions{7}(c)
+        @test false
+    catch
+        @test true # test the exception was thrown
+    end
+
+    @test [sgcp[i] for i in 1:length(sgcp)] == collect(sgcp)
+    @test abs.(collect(sgcp)) == collect(gcp) 
+
+    flag = true;
+    for n in 1:length(sgcp)
+        if (sgcp[n] > 0 && gray(n) < gray(n-1)) || (sgcp[n] < 0 && gray(n) > gray(n-1))
+            flag = false;
+            break
+        end
+
+    end
+    @test flag
 end
