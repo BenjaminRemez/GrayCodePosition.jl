@@ -37,16 +37,18 @@ collect(gcp)'
 ```
 
 # Example Usage
-The transient index sequence of Gray codes is useful for efficiently iterating over all subsets of some set. For example
+The transient index sequence of Gray codes is useful for efficiently iterating over all subsets of a given set. For example, to sum over the squares of every subset sum:
 ```julia
 using GrayCodePosition
 
 function sumsubsets_manual(v)
     total = zero(eltype(v))
     for n = 0:(2^length(v)-1)
+        setsum = zero(eltype(v))
         for i in 1:length(v)
-            total += ifelse(n & (1 << (i-1)) != 0 , v[i], 0)
+            setsum += ifelse(n & (1 << (i-1)) != 0, v[i], zero(eltype(v)))
         end
+        total += setsum*setsum;
     end
     total
 end
@@ -54,12 +56,14 @@ end
 function sumsubsets_gray(v)
     setsum = zero(eltype(v));
     total = setsum;
-    for i in 1:(2^length(v)-1)
-        n = gray(i)
-        pos = graytransient(i)
-        setsum += ifelse(n & (1 << (pos-1)) != 0, v[pos], -v[pos])
-        total += setsum
+    sgcp = signed(diff(GrayCode(length(v))))
+    for i in 1:length(sgcp) 
+        pos = sgcp[i]
+        val = v[abs(pos)];
+        setsum += ifelse(pos > 0, val, -val)
+        total += setsum*setsum
     end
+    
     total
 end
 
@@ -67,7 +71,7 @@ v = rand(1:100, 30);
 sumsubsets_manual(v) == sumsubsets_gray(v)
 # true
 @time sumsubsets_manual(v);
-#  16.330157 seconds (1 allocation: 16 bytes)
+# 16.871554 seconds 
 @time sumsubsets_gray(v);
-#  1.354014 seconds (1 allocation: 16 bytes)
+#  1.744238 seconds 
 ``` 
